@@ -209,14 +209,14 @@ app.get('/state', (req, res) => res.json(readJson(STATE_PATH, {})));
 // --- Slack Events ---
 
 app.post('/slack/events', async (req, res) => {
-  if (!verifySlack(req)) return res.status(401).send('Unauthorized');
-
-  // Ignore Slack retries (event already handled)
   if (req.headers['x-slack-retry-num']) return res.sendStatus(200);
 
   const body = JSON.parse(req.body.toString());
 
+  // Challenge must be answered before signature check (signing secret may not be set yet)
   if (body.type === 'url_verification') return res.json({ challenge: body.challenge });
+
+  if (!verifySlack(req)) return res.status(401).send('Unauthorized');
 
   res.sendStatus(200); // acknowledge before async work
 
