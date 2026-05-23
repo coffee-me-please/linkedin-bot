@@ -1,0 +1,128 @@
+[
+  {
+    "id": "ground_1",
+    "theme": "On the ground",
+    "question": "When a brand comes to you worried about AI search visibility, what's the first wrong assumption you have to undo?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "ground_2",
+    "theme": "On the ground",
+    "question": "Have you had a client where doing the \"right\" AEO/GEO things made no visible difference — and what did that teach you?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "ground_3",
+    "theme": "On the ground",
+    "question": "What does good execution actually look like in this space, versus what most agencies pitch?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "contrarian_1",
+    "theme": "Contrarian takes",
+    "question": "Everyone is talking about tools to track AI citations. What's the thing nobody is talking about that actually moves the needle?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "contrarian_2",
+    "theme": "Contrarian takes",
+    "question": "The market has about 6 different names for this — AEO, GEO, LLMO, GSO. Does it matter? What do you call it and why?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "contrarian_3",
+    "theme": "Contrarian takes",
+    "question": "Is AI search visibility actually measurable right now, or are brands buying confidence more than outcomes?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "industry_1",
+    "theme": "Industry observations",
+    "question": "Which types of brands are genuinely winning in AI search right now — and what do they have in common that has nothing to do with their tech stack?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "industry_2",
+    "theme": "Industry observations",
+    "question": "Reddit, LinkedIn, and YouTube are apparently among the most-cited sources by LLMs. What does that mean for how brands should think about content, and are your clients ready to hear it?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "industry_3",
+    "theme": "Industry observations",
+    "question": "Where do you think this space is in 12 months — more consolidated, more chaotic, or something else entirely?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "belief_1",
+    "theme": "The deeper belief",
+    "question": "If you had to bet on one thing that will separate the brands that win AI visibility from those that don't — what is it, and why is it almost never what people focus on?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "present_1",
+    "theme": "Where you are now",
+    "question": "What do you do today, and what's the one thing you're proudest of about it?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "present_2",
+    "theme": "Where you are now",
+    "question": "What belief or approach separates how you work from most people in your field?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "defining_1",
+    "theme": "Defining moments",
+    "question": "When did you make a call that went badly — and what did it force you to learn?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "defining_2",
+    "theme": "Defining moments",
+    "question": "What's a moment when you were the underdog — and what happened?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "people_1",
+    "theme": "People & friction",
+    "question": "Tell me about a person — mentor, rival, difficult boss, or early champion — who changed your trajectory. What did they do or say? What did you do with it?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "people_2",
+    "theme": "People & friction",
+    "question": "When did you have to say something uncomfortable — to a boss, client, team, or room — and what did it cost or earn you?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "reinvent_1",
+    "theme": "Reinvention & growth",
+    "question": "What's something you believed early in your career that you now think is completely wrong?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "reinvent_2",
+    "theme": "Reinvention & growth",
+    "question": "When did you have to start over — new role, new industry, new city — and what surprised you most?",
+    "asked": false,
+    "asked_date": null
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "name": "linkedin-bot",
+  "version": "1.0.0",
+  "description": "Daily LinkedIn question → draft → style learning loop for Pooja",
+  "main": "webhook/server.js",
+  "scripts": {
+    "start": "node webhook/server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "express": "^4.18.2",
+    "dotenv": "^16.4.5"
+  }
+}

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: linkedin-bot
+    env: node
+    buildCommand: npm install
+    startCommand: node webhook/server.js
+    plan: free
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SLACK_BOT_TOKEN
+        sync: false
+      - key: SLACK_SIGNING_SECRET
+        sync: false
+      - key: SLACK_USER_ID
+        sync: false
