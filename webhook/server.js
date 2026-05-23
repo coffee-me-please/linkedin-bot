@@ -3,16 +3,14 @@ const express = require('express');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const Anthropic = require('@anthropic-ai/sdk');
 
 const app = express();
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
+const SLACK_BOT_TOKEN    = process.env.SLACK_BOT_TOKEN;
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
-const POOJA_USER_ID = process.env.SLACK_USER_ID || 'U0AFQMRGPAQ';
+const POOJA_USER_ID      = process.env.SLACK_USER_ID || 'U0AFQMRGPAQ';
 
-const DATA = path.join(__dirname, '../data');
+const DATA           = path.join(__dirname, '../data');
 const QUESTIONS_PATH = path.join(DATA, 'questions.json');
 const STATE_PATH     = path.join(DATA, 'state.json');
 const STYLE_PATH     = path.join(DATA, 'style_guide.md');
@@ -80,92 +78,10 @@ async function updateMessage(channel, ts, text) {
   return slackApi('chat.update', { channel, ts, text, blocks: [] });
 }
 
-// --- Claude: draft generation ---
-
-async function generateDraft(question, theme, answer) {
-  const style = readStyle().trim();
-  const styleSection = style && !style.startsWith('(No style notes')
-    ? `\nStyle notes from Pooja's past edits — apply these:\n${style}\n`
-    : '';
-
-  const res = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    messages: [{
-      role: 'user',
-      content: `You are a LinkedIn ghostwriter for Pooja Agarwal, founder of Magnent — an AEO (Answer Engine Optimization) agency in India.
-
-Pooja's voice: Direct, grounded, India-context-aware. She's a practitioner, not a theorist. She speaks from real client experience. She doesn't use jargon for its own sake. She's comfortable being contrarian when she has evidence.
-
-LinkedIn audience: Founders, CMOs, growth leaders, agency peers, fintech operators — mostly India-based, some global.
-
-Theme: ${theme}
-Question she answered: ${question}
-
-Her raw answer:
----
-${answer}
----
-${styleSection}
-Write a LinkedIn post (250–400 words) based on her answer.
-
-Rules:
-- Open with a hook that does NOT start with "I" — use a scene, a question, or a provocation
-- First person, Pooja's voice throughout
-- No bullet lists unless her answer was explicitly list-form
-- No hashtags (she'll add her own)
-- No em-dashes
-- End with something that invites reflection — not a call to follow or like
-- Keep her specific details, numbers, and examples — don't genericize
-- Don't add things she didn't say
-
-Output only the post. No preamble.`,
-    }],
-  });
-  return res.content[0].text;
-}
-
-// --- Claude: style learning ---
-
-async function learnFromEdit(question, originalDraft, editedPost) {
-  const currentStyle = readStyle();
-
-  const res = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 600,
-    messages: [{
-      role: 'user',
-      content: `You are analyzing edits Pooja Agarwal made to a LinkedIn post draft, to extract her writing style preferences.
-
-Question she answered: ${question}
-
-Original draft:
----
-${originalDraft}
----
-
-Her final edited version:
----
-${editedPost}
----
-
-Existing style notes:
----
-${currentStyle || '(none yet)'}
----
-
-Compare the original and her edit. Identify concrete, actionable patterns in what she changed — tone, structure, vocabulary, length, openings, closings, phrasing preferences, etc.
-
-Output ONLY the updated style notes (full list, old + new learnings merged). One note per bullet. No meta-commentary.`,
-    }],
-  });
-  writeStyle(res.content[0].text);
-}
-
-// --- Slack signature verification ---
+// --- Signature verification ---
 
 function verifySlack(req) {
-  const ts = req.headers['x-slack-request-timestamp'];
+  const ts  = req.headers['x-slack-request-timestamp'];
   const sig = req.headers['x-slack-signature'];
   if (!ts || !sig || Math.abs(Date.now() / 1000 - ts) > 300) return false;
   const computed = 'v0=' + crypto.createHmac('sha256', SLACK_SIGNING_SECRET)
@@ -173,23 +89,23 @@ function verifySlack(req) {
   return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(sig));
 }
 
-// --- Express setup ---
+// --- Express ---
 
 app.use('/slack/events',  express.raw({ type: '*/*' }));
 app.use('/slack/actions', express.raw({ type: 'application/x-www-form-urlencoded' }));
 app.use(express.json());
 
-// --- Routes ---
+// --- Routes: routine-facing ---
 
 app.get('/', (req, res) => res.send('linkedin-bot running'));
 
-// Routine calls this to get the next question to ask
+// Question routine calls this to get today's question
 app.get('/questions/next', (req, res) => {
   const q = nextQuestion();
   res.json(q || { error: 'no questions available' });
 });
 
-// Routine calls this after sending the question to Slack
+// Question routine calls this after sending the Slack DM
 app.post('/log-question', (req, res) => {
   const { question_id, question, theme, thread_ts, channel } = req.body;
   if (!question_id || !thread_ts || !channel) {
@@ -197,13 +113,71 @@ app.post('/log-question', (req, res) => {
   }
   markAsked(question_id);
   const state = readJson(STATE_PATH, {});
-  state.pending = { question_id, question, theme, thread_ts, channel, draft: null, awaiting_edit: false };
+  state.pending = {
+    question_id, question, theme, thread_ts, channel,
+    answer: null, answer_processed: false,
+    draft: null,
+    edit: null, edit_processed: false,
+    awaiting_edit: false,
+  };
   state.last_theme = theme;
   writeJson(STATE_PATH, state);
   res.json({ ok: true });
 });
 
-// Utility: current state
+// Processor routine polls this to find pending work
+app.get('/pending', (req, res) => {
+  const { pending } = readJson(STATE_PATH, {});
+  if (!pending) return res.json({ type: null });
+
+  if (pending.edit && !pending.edit_processed) {
+    return res.json({
+      type: 'edit',
+      question:       pending.question,
+      original_draft: pending.draft,
+      edit:           pending.edit,
+      thread_ts:      pending.thread_ts,
+      channel:        pending.channel,
+    });
+  }
+  if (pending.answer && !pending.answer_processed) {
+    return res.json({
+      type:      'answer',
+      question:  pending.question,
+      theme:     pending.theme,
+      answer:    pending.answer,
+      thread_ts: pending.thread_ts,
+      channel:   pending.channel,
+    });
+  }
+  return res.json({ type: null });
+});
+
+// Processor routine calls this after generating the draft or updating style
+app.post('/processed', (req, res) => {
+  const { type, draft, style_guide } = req.body;
+  const state = readJson(STATE_PATH, {});
+  if (!state.pending) return res.status(400).json({ error: 'no pending state' });
+
+  if (type === 'answer' && draft) {
+    state.pending.answer_processed = true;
+    state.pending.draft = draft;
+    appendLog({ type: 'draft', question: state.pending.question, theme: state.pending.theme, answer: state.pending.answer, draft });
+  } else if (type === 'edit' && style_guide) {
+    state.pending.edit_processed = true;
+    writeStyle(style_guide);
+    appendLog({ type: 'edit', question: state.pending.question, original_draft: state.pending.draft, edit: state.pending.edit });
+  }
+
+  writeJson(STATE_PATH, state);
+  res.json({ ok: true });
+});
+
+// Processor routine reads this to apply past style learnings when drafting
+app.get('/style-guide', (req, res) => {
+  res.type('text/plain').send(readStyle());
+});
+
 app.get('/state', (req, res) => res.json(readJson(STATE_PATH, {})));
 
 // --- Slack Events ---
@@ -212,82 +186,58 @@ app.post('/slack/events', async (req, res) => {
   if (req.headers['x-slack-retry-num']) return res.sendStatus(200);
 
   const body = JSON.parse(req.body.toString());
-
-  // Challenge must be answered before signature check (signing secret may not be set yet)
   if (body.type === 'url_verification') return res.json({ challenge: body.challenge });
 
   if (!verifySlack(req)) return res.status(401).send('Unauthorized');
 
-  res.sendStatus(200); // acknowledge before async work
+  res.sendStatus(200);
 
   const event = body.event;
   if (!event || event.type !== 'message') return;
-  if (event.bot_id || event.subtype) return;
-  if (event.user !== POOJA_USER_ID) return;
-  if (!event.thread_ts) return; // only thread replies
+  if (event.bot_id || event.subtype)      return;
+  if (event.user !== POOJA_USER_ID)       return;
+  if (!event.thread_ts)                   return;
 
   const state = readJson(STATE_PATH, {});
   const pending = state.pending;
-  if (!pending) return;
-  if (event.thread_ts !== pending.thread_ts) return;
+  if (!pending || event.thread_ts !== pending.thread_ts) return;
 
-  // Case 1: awaiting her edited LinkedIn post
+  // Awaiting her edited LinkedIn post
   if (pending.awaiting_edit) {
-    const editedPost = event.text;
-    try {
-      await learnFromEdit(pending.question, pending.draft, editedPost);
-      appendLog({ type: 'edit', question: pending.question, theme: pending.theme, original_draft: pending.draft, edited_post: editedPost });
-      state.pending.awaiting_edit = false;
-      writeJson(STATE_PATH, state);
-      await sendMessage(event.channel, '✅ Style notes updated — future drafts will reflect your edits.', null, event.thread_ts);
-    } catch (err) {
-      console.error('Style learning failed:', err);
-      await sendMessage(event.channel, '⚠️ Could not process your edit. Try again.', null, event.thread_ts);
-    }
-    return;
-  }
-
-  // Case 2: draft already sent — nudge to use the button
-  if (pending.draft) {
-    await sendMessage(event.channel, 'Tap "Share my edited version" on the draft above when you\'re ready to submit your edit.', null, event.thread_ts);
-    return;
-  }
-
-  // Case 3: this is her raw answer — generate draft
-  const answer = event.text;
-  try {
-    const draft = await generateDraft(pending.question, pending.theme, answer);
-    state.pending.draft = draft;
+    state.pending.edit = event.text;
+    state.pending.edit_processed = false;
+    state.pending.awaiting_edit = false;
     writeJson(STATE_PATH, state);
-    appendLog({ type: 'draft', question: pending.question, theme: pending.theme, answer, draft });
-
-    await sendMessage(event.channel, draft, [
-      {
-        type: 'section',
-        text: { type: 'mrkdwn', text: `*Draft — ${pending.theme}*\n\n${draft}` },
-      },
-      {
-        type: 'actions',
-        elements: [{
-          type: 'button',
-          text: { type: 'plain_text', text: '📝 Share my edited version' },
-          action_id: 'share_edit',
-        }],
-      },
-    ], pending.thread_ts);
-  } catch (err) {
-    console.error('Draft generation failed:', err);
-    await sendMessage(event.channel, '⚠️ Draft generation failed. Try again in a moment.', null, pending.thread_ts);
+    await sendMessage(event.channel, '✅ Got it — style notes will update on the next run.', null, event.thread_ts);
+    return;
   }
+
+  // Draft already sent — nudge to use button
+  if (pending.draft) {
+    await sendMessage(event.channel, 'Tap "Share my edited version" on the draft above when you\'re ready.', null, event.thread_ts);
+    return;
+  }
+
+  // Answer already received but not yet processed
+  if (pending.answer) {
+    await sendMessage(event.channel, 'Your answer is queued — draft coming shortly.', null, event.thread_ts);
+    return;
+  }
+
+  // First reply = her answer
+  state.pending.answer = event.text;
+  state.pending.answer_processed = false;
+  writeJson(STATE_PATH, state);
+  await sendMessage(event.channel, '👍 Got it — draft coming shortly.', null, event.thread_ts);
 });
 
-// --- Slack Actions (button clicks) ---
+// --- Slack Actions ---
 
 app.post('/slack/actions', async (req, res) => {
   if (!verifySlack(req)) return res.status(401).send('Unauthorized');
 
   const payload = JSON.parse(new URLSearchParams(req.body.toString()).get('payload'));
-  const action = payload.actions[0];
+  const action    = payload.actions[0];
   const channelId = payload.channel.id;
   const messageTs = payload.message.ts;
 
@@ -299,7 +249,7 @@ app.post('/slack/actions', async (req, res) => {
       state.pending.awaiting_edit = true;
       writeJson(STATE_PATH, state);
     }
-    await updateMessage(channelId, messageTs, payload.message.text + '\n\n_[Edit submitted — waiting for paste]_');
+    await updateMessage(channelId, messageTs, payload.message.text + '\n\n_[Waiting for your edit]_');
     await sendMessage(channelId, 'Paste your final LinkedIn post as a reply in this thread:', null, messageTs);
   }
 });
