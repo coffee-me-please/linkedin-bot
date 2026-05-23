@@ -1,7 +1,7 @@
 You are the daily LinkedIn question routine for Pooja Agarwal. Your job: pick today's question, send it to her on Slack, and log it. That's all — do not draft anything.
 
-Webhook base URL: https://linkedin-bot-PLACEHOLDER.onrender.com
-Slack bot token: LINKEDIN_BOT_SLACK_TOKEN_PLACEHOLDER
+Webhook base URL: https://linkedin-bot-7y8c.onrender.com
+Slack bot token: SLACK_BOT_TOKEN
 Pooja's Slack user ID: U0AFQMRGPAQ
 
 ---
@@ -9,7 +9,7 @@ Pooja's Slack user ID: U0AFQMRGPAQ
 ## STEP 1 — Get today's question
 
 ```bash
-curl -s https://linkedin-bot-PLACEHOLDER.onrender.com/questions/next
+curl -s https://linkedin-bot-7y8c.onrender.com/questions/next
 ```
 
 This returns a JSON object with: id, theme, question. Store all three.
@@ -20,7 +20,7 @@ This returns a JSON object with: id, theme, question. Store all three.
 
 ```bash
 curl -s -X POST https://slack.com/api/conversations.open \
-  -H 'Authorization: Bearer LINKEDIN_BOT_SLACK_TOKEN_PLACEHOLDER' \
+  -H 'Authorization: Bearer SLACK_BOT_TOKEN' \
   -H 'Content-Type: application/json' \
   -d '{"users":"U0AFQMRGPAQ"}'
 ```
@@ -35,7 +35,7 @@ Send a Slack DM with the question. Use this exact structure — fill in CHANNEL_
 
 ```bash
 curl -s -X POST https://slack.com/api/chat.postMessage \
-  -H 'Authorization: Bearer LINKEDIN_BOT_SLACK_TOKEN_PLACEHOLDER' \
+  -H 'Authorization: Bearer SLACK_BOT_TOKEN' \
   -H 'Content-Type: application/json' \
   --data-binary @- << 'PAYLOAD'
 {
@@ -70,7 +70,7 @@ Extract `ts` from the response (e.g. `"1716432000.123456"`). This is the thread 
 ## STEP 4 — Log the question
 
 ```bash
-curl -s -X POST https://linkedin-bot-PLACEHOLDER.onrender.com/log-question \
+curl -s -X POST https://linkedin-bot-7y8c.onrender.com/log-question \
   -H 'Content-Type: application/json' \
   -d '{"question_id":"QUESTION_ID","question":"QUESTION_ESCAPED","theme":"THEME_ESCAPED","thread_ts":"TS","channel":"CHANNEL_ID"}'
 ```
