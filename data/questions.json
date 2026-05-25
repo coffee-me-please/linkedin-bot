@@ -21,6 +21,20 @@
     "asked_date": null
   },
   {
+    "id": "ground_4",
+    "theme": "On the ground",
+    "question": "What's a client conversation that completely changed how you think about AI search visibility — what did they say, and what did it unlock for you?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "ground_5",
+    "theme": "On the ground",
+    "question": "What's the most common mistake you see brands make in their first 90 days of working on AI visibility?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
     "id": "contrarian_1",
     "theme": "Contrarian takes",
     "question": "Everyone is talking about tools to track AI citations. What's the thing nobody is talking about that actually moves the needle?",
@@ -38,6 +52,20 @@
     "id": "contrarian_3",
     "theme": "Contrarian takes",
     "question": "Is AI search visibility actually measurable right now, or are brands buying confidence more than outcomes?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "contrarian_4",
+    "theme": "Contrarian takes",
+    "question": "Most people think AEO is about optimizing content for AI. What do you think it's actually about, underneath all the tactics?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "contrarian_5",
+    "theme": "Contrarian takes",
+    "question": "What's a metric everyone in this space tracks that you think tells you almost nothing useful?",
     "asked": false,
     "asked_date": null
   },
@@ -63,9 +91,30 @@
     "asked_date": null
   },
   {
+    "id": "industry_4",
+    "theme": "Industry observations",
+    "question": "Which industry or brand category is most underestimating the shift to AI search right now — and what's it going to cost them?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
     "id": "belief_1",
     "theme": "The deeper belief",
     "question": "If you had to bet on one thing that will separate the brands that win AI visibility from those that don't — what is it, and why is it almost never what people focus on?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "belief_2",
+    "theme": "The deeper belief",
+    "question": "What's a belief about content or marketing that most people in your industry would push back on?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "belief_3",
+    "theme": "The deeper belief",
+    "question": "What's the one thing you wish more founders understood about how AI search actually works — before they waste six months on the wrong things?",
     "asked": false,
     "asked_date": null
   },
@@ -122,6 +171,41 @@
     "id": "reinvent_2",
     "theme": "Reinvention & growth",
     "question": "When did you have to start over — new role, new industry, new city — and what surprised you most?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "magnent_1",
+    "theme": "Building Magnent",
+    "question": "What was the hardest part of starting Magnent — and what made you push through it anyway?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "magnent_2",
+    "theme": "Building Magnent",
+    "question": "What's something you got wrong in the first year of running Magnent — a decision, an assumption, an approach?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "magnent_3",
+    "theme": "Building Magnent",
+    "question": "What does your ideal client relationship look like — and how often do you actually get it?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "personal_1",
+    "theme": "Personal",
+    "question": "What's something outside of work — a habit, a hobby, a relationship — that has made you better at what you do?",
+    "asked": false,
+    "asked_date": null
+  },
+  {
+    "id": "future_1",
+    "theme": "Future",
+    "question": "When you picture where Magnent is in 3–5 years, what does that look like — and what has to be true for it to get there?",
     "asked": false,
     "asked_date": null
   }
