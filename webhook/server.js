@@ -99,30 +99,42 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.send('linkedin-bot running'));
 
-// Question routine calls this to get today's question
-app.get('/questions/next', (req, res) => {
+// Called by cron-job.org daily at 12pm IST — picks question, sends Slack DM, logs state
+app.post('/send-question', async (req, res) => {
   const q = nextQuestion();
-  res.json(q || { error: 'no questions available' });
-});
+  if (!q) return res.status(500).json({ error: 'no questions available' });
 
-// Question routine calls this after sending the Slack DM
-app.post('/log-question', (req, res) => {
-  const { question_id, question, theme, thread_ts, channel } = req.body;
-  if (!question_id || !thread_ts || !channel) {
-    return res.status(400).json({ error: 'question_id, thread_ts, and channel required' });
-  }
-  markAsked(question_id);
+  const dmRes = await slackApi('conversations.open', { users: POOJA_USER_ID });
+  const channel = dmRes.channel?.id;
+  if (!channel) return res.status(500).json({ error: 'could not open DM channel' });
+
+  const msgRes = await sendMessage(channel, q.question, [
+    {
+      type: 'section',
+      text: { type: 'mrkdwn', text: `*${q.theme}*\n\n${q.question}` },
+    },
+    {
+      type: 'context',
+      elements: [{ type: 'mrkdwn', text: 'Reply in this thread — as much or as little as you want. The draft will come back here.' }],
+    },
+  ]);
+
+  if (!msgRes.ok) return res.status(500).json({ error: 'slack send failed', detail: msgRes.error });
+
+  markAsked(q.id);
   const state = readJson(STATE_PATH, {});
   state.pending = {
-    question_id, question, theme, thread_ts, channel,
+    question_id: q.id, question: q.question, theme: q.theme,
+    thread_ts: msgRes.ts, channel,
     answer: null, answer_processed: false,
     draft: null,
     edit: null, edit_processed: false,
     awaiting_edit: false,
   };
-  state.last_theme = theme;
+  state.last_theme = q.theme;
   writeJson(STATE_PATH, state);
-  res.json({ ok: true });
+
+  res.json({ ok: true, theme: q.theme, question: q.question });
 });
 
 // Processor routine polls this to find pending work
