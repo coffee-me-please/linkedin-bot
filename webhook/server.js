@@ -99,8 +99,8 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.send('linkedin-bot running'));
 
-// Called by cron-job.org daily at 12pm IST — picks question, sends Slack DM, logs state
-app.post('/send-question', async (req, res) => {
+// Called by cron-job.org — picks question, sends Slack DM, logs state
+app.all('/send-question', async (req, res) => {
   const q = nextQuestion();
   if (!q) return res.status(500).json({ error: 'no questions available' });
 
